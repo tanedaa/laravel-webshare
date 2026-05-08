@@ -52,4 +52,13 @@ class UpdateWebShareProxiesCommandTest extends TestCase
         $this->assertDatabaseHas('proxies', ['proxy_id' => 'proxy-cmd-1']);
         $this->assertDatabaseHas('proxies', ['proxy_id' => 'proxy-cmd-2']);
     }
+
+    public function test_it_fails_with_helpful_message_when_api_key_is_missing(): void
+    {
+        config()->set('webshare.api_key', null);
+
+        $this->artisan('webshare:update-proxies')
+            ->expectsOutputToContain('Missing WebShare API key')
+            ->assertFailed();
+    }
 }

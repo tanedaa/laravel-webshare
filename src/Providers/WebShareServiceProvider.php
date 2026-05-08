@@ -3,6 +3,7 @@
 namespace Tanedaa\LaravelWebShare\Providers;
 
 use Illuminate\Http\Client\Factory as HttpFactory;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
 use Tanedaa\LaravelWebShare\Console\Commands\UpdateWebShareProxiesCommand;
@@ -25,20 +26,24 @@ class WebShareServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Http::macro('webshare', function () {
+        $applyWebShareProxy = function (PendingRequest $request): PendingRequest {
             $proxyUrl = app(WebShare::class)->getRandomProxyUrl();
 
-            return Http::withOptions([
+            return $request->withOptions([
                 'proxy' => $proxyUrl,
             ]);
+        };
+
+        Http::macro('webshare', function () use ($applyWebShareProxy) {
+            return $applyWebShareProxy(Http::withOptions([]));
         });
 
-        HttpFactory::macro('webshare', function () {
-            $proxyUrl = app(WebShare::class)->getRandomProxyUrl();
+        HttpFactory::macro('webshare', function () use ($applyWebShareProxy) {
+            return $applyWebShareProxy($this->withOptions([]));
+        });
 
-            return $this->withOptions([
-                'proxy' => $proxyUrl,
-            ]);
+        PendingRequest::macro('webshare', function () use ($applyWebShareProxy) {
+            return $applyWebShareProxy($this);
         });
 
         $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');

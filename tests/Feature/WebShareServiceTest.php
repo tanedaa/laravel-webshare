@@ -4,7 +4,8 @@ namespace Tests\Feature;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use RuntimeException;
+use Tanedaa\LaravelWebShare\Exceptions\MissingApiKeyException;
+use Tanedaa\LaravelWebShare\Exceptions\NoValidProxyException;
 use Tanedaa\LaravelWebShare\Models\Proxy;
 use Tanedaa\LaravelWebShare\Services\WebShare;
 use Tests\TestCase;
@@ -82,10 +83,19 @@ class WebShareServiceTest extends TestCase
             'asn_number' => '9999',
         ]);
 
-        $this->expectException(RuntimeException::class);
+        $this->expectException(NoValidProxyException::class);
         $this->expectExceptionMessage('No valid proxies found in the proxies table.');
 
         app(WebShare::class)->getRandomProxy();
+    }
+
+    public function test_it_throws_when_api_key_is_missing(): void
+    {
+        config()->set('webshare.api_key', null);
+
+        $this->expectException(MissingApiKeyException::class);
+
+        app(WebShare::class)->getProxyList(1);
     }
 
     public function test_it_url_encodes_credentials_in_proxy_url(): void

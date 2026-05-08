@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
+use Tanedaa\LaravelWebShare\Exceptions\NoValidProxyException;
 use Tanedaa\LaravelWebShare\Facades\WebShare as WebShareFacade;
 use Tanedaa\LaravelWebShare\Models\Proxy;
 use Tanedaa\LaravelWebShare\Services\WebShare;
@@ -69,5 +70,65 @@ class ServiceProviderIntegrationTest extends TestCase
     public function test_http_factory_macro_is_registered(): void
     {
         $this->assertTrue(HttpFactory::hasMacro('webshare'));
+        $this->assertTrue(PendingRequest::hasMacro('webshare'));
+    }
+
+    public function test_http_macro_throws_when_no_valid_proxy_exists(): void
+    {
+        $this->expectException(NoValidProxyException::class);
+
+        Http::webshare();
+    }
+
+    public function test_http_webshare_then_as_form_keeps_proxy_option(): void
+    {
+        Proxy::query()->create([
+            'proxy_id' => 'proxy-chain-1',
+            'username' => 'user1',
+            'password' => 'pass1',
+            'proxy_address' => '8.8.8.8',
+            'port' => 3000,
+            'is_valid' => true,
+            'country_code' => 'US',
+            'city_name' => 'City',
+            'asn_name' => 'ASN',
+            'asn_number' => '1',
+        ]);
+
+        $request = Http::webshare()->asForm();
+
+        $reflection = new \ReflectionClass($request);
+        $property = $reflection->getProperty('options');
+        $property->setAccessible(true);
+        $options = $property->getValue($request);
+
+        $this->assertSame('http://user1:pass1@8.8.8.8:3000', $options['proxy']);
+        $this->assertSame('application/x-www-form-urlencoded', $options['headers']['Content-Type']);
+    }
+
+    public function test_http_as_form_then_webshare_keeps_form_and_proxy_options(): void
+    {
+        Proxy::query()->create([
+            'proxy_id' => 'proxy-chain-2',
+            'username' => 'user2',
+            'password' => 'pass2',
+            'proxy_address' => '9.9.9.9',
+            'port' => 4000,
+            'is_valid' => true,
+            'country_code' => 'US',
+            'city_name' => 'City',
+            'asn_name' => 'ASN',
+            'asn_number' => '2',
+        ]);
+
+        $request = Http::asForm()->webshare();
+
+        $reflection = new \ReflectionClass($request);
+        $property = $reflection->getProperty('options');
+        $property->setAccessible(true);
+        $options = $property->getValue($request);
+
+        $this->assertSame('http://user2:pass2@9.9.9.9:4000', $options['proxy']);
+        $this->assertSame('application/x-www-form-urlencoded', $options['headers']['Content-Type']);
     }
 }

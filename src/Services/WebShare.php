@@ -4,7 +4,8 @@ namespace Tanedaa\LaravelWebShare\Services;
 
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
-use RuntimeException;
+use Tanedaa\LaravelWebShare\Exceptions\MissingApiKeyException;
+use Tanedaa\LaravelWebShare\Exceptions\NoValidProxyException;
 use Tanedaa\LaravelWebShare\Models\Proxy;
 
 class WebShare
@@ -88,7 +89,7 @@ class WebShare
             ->first();
 
         if (! $proxy) {
-            throw new RuntimeException('No valid proxies found in the proxies table.');
+            throw new NoValidProxyException();
         }
 
         return $proxy;
@@ -125,8 +126,14 @@ class WebShare
 
     private function sendRequestToWebShare(string $path, array $payload = []): Response
     {
+        $apiKey = (string) config('webshare.api_key', '');
+
+        if ($apiKey === '') {
+            throw new MissingApiKeyException();
+        }
+
         return Http::withHeaders([
-            'Authorization' => 'Token ' . config('webshare.api_key'),
+            'Authorization' => 'Token ' . $apiKey,
         ])->get($this->url . $path, $payload);
     }
 }
