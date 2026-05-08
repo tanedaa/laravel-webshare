@@ -11,9 +11,9 @@ class WebShare
 {
     private string $url = 'https://proxy.webshare.io/api/v2/';
 
-    public function updateProxyList(): void
+    public function updateProxyList(int $pageSize = 100): void
     {
-        $proxies = $this->getProxyList();
+        $proxies = $this->getProxyList($pageSize);
 
         foreach ($proxies['results'] as $proxy)
         {
@@ -36,14 +36,46 @@ class WebShare
         }
     }
 
-    public function getProxyList(): array
+    public function getProxyList(int $pageSize = 100): array
     {
-        $response = $this->sendRequestToWebShare('proxy/list', [
-            'mode' => 'direct',
-            'page_size' => 100,
-        ]);
+        $allResults = [];
+        $page = 1;
+        $totalCount = null;
 
-        return $response->throw()->json();
+        while (true) {
+            $response = $this->sendRequestToWebShare('proxy/list', [
+                'mode' => 'direct',
+                'page_size' => $pageSize,
+                'page' => $page,
+            ]);
+
+            $data = $response->throw()->json();
+
+            $totalCount ??= $data['count'] ?? 0;
+            $results = $data['results'] ?? [];
+            $allResults = array_merge($allResults, $results);
+
+            if (($data['next'] ?? null) === null) {
+                break;
+            }
+
+            if (count($allResults) >= $totalCount) {
+                break;
+            }
+
+            if (empty($results)) {
+                break;
+            }
+
+            $page++;
+        }
+
+        return [
+            'count' => $totalCount ?? count($allResults),
+            'next' => null,
+            'previous' => null,
+            'results' => $allResults,
+        ];
     }
 
     public function getRandomProxy(): Proxy

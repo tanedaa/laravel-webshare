@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Tanedaa\LaravelWebShare\Models\Proxy;
 use Tanedaa\LaravelWebShare\Services\WebShare;
@@ -151,5 +152,104 @@ class WebShareServiceTest extends TestCase
             'port' => 8000,
             'is_valid' => 1,
         ]);
+    }
+
+    public function test_it_paginates_proxy_list_until_all_results_are_fetched(): void
+    {
+        Http::fake([
+            'https://proxy.webshare.io/api/v2/proxy/list*' => function ($request) {
+                parse_str(parse_url($request->url(), PHP_URL_QUERY) ?? '', $query);
+                $page = (int) ($query['page'] ?? 1);
+                $pageSize = (int) ($query['page_size'] ?? 100);
+
+                $this->assertSame(3, $pageSize);
+
+                if ($page === 1) {
+                    return Http::response([
+                        'count' => 5,
+                        'next' => 'https://proxy.webshare.io/api/v2/proxy/list/?mode=direct&page=2&page_size=3',
+                        'previous' => null,
+                        'results' => [
+                            [
+                                'id' => 'proxy-p1-a',
+                                'username' => 'u1',
+                                'password' => 'p1',
+                                'proxy_address' => '10.0.0.1',
+                                'port' => 8001,
+                                'valid' => true,
+                                'country_code' => 'US',
+                                'city_name' => 'A',
+                                'asn_name' => 'ASN1',
+                                'asn_number' => '1',
+                            ],
+                            [
+                                'id' => 'proxy-p1-b',
+                                'username' => 'u2',
+                                'password' => 'p2',
+                                'proxy_address' => '10.0.0.2',
+                                'port' => 8002,
+                                'valid' => true,
+                                'country_code' => 'US',
+                                'city_name' => 'B',
+                                'asn_name' => 'ASN2',
+                                'asn_number' => '2',
+                            ],
+                            [
+                                'id' => 'proxy-p1-c',
+                                'username' => 'u3',
+                                'password' => 'p3',
+                                'proxy_address' => '10.0.0.3',
+                                'port' => 8003,
+                                'valid' => true,
+                                'country_code' => 'US',
+                                'city_name' => 'C',
+                                'asn_name' => 'ASN3',
+                                'asn_number' => '3',
+                            ],
+                        ],
+                    ], 200);
+                }
+
+                return Http::response([
+                    'count' => 5,
+                    'next' => null,
+                    'previous' => 'https://proxy.webshare.io/api/v2/proxy/list/?mode=direct&page=1&page_size=3',
+                    'results' => [
+                        [
+                            'id' => 'proxy-p2-a',
+                            'username' => 'u4',
+                            'password' => 'p4',
+                            'proxy_address' => '10.0.0.4',
+                            'port' => 8004,
+                            'valid' => true,
+                            'country_code' => 'US',
+                            'city_name' => 'D',
+                            'asn_name' => 'ASN4',
+                            'asn_number' => '4',
+                        ],
+                        [
+                            'id' => 'proxy-p2-b',
+                            'username' => 'u5',
+                            'password' => 'p5',
+                            'proxy_address' => '10.0.0.5',
+                            'port' => 8005,
+                            'valid' => true,
+                            'country_code' => 'US',
+                            'city_name' => 'E',
+                            'asn_name' => 'ASN5',
+                            'asn_number' => '5',
+                        ],
+                    ],
+                ], 200);
+            },
+        ]);
+
+        app(WebShare::class)->updateProxyList(3);
+
+        $this->assertSame(5, Proxy::query()->count());
+
+        Http::assertSentCount(2);
+        $this->assertDatabaseHas('proxies', ['proxy_id' => 'proxy-p1-a']);
+        $this->assertDatabaseHas('proxies', ['proxy_id' => 'proxy-p2-b']);
     }
 }
