@@ -5,6 +5,7 @@ namespace Tanedaa\LaravelWebShare\Providers;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
+use Tanedaa\LaravelWebShare\Console\Commands\UpdateWebShareProxiesCommand;
 use Tanedaa\LaravelWebShare\Services\WebShare;
 
 class WebShareServiceProvider extends ServiceProvider
@@ -43,6 +44,10 @@ class WebShareServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
 
         if ($this->app->runningInConsole()) {
+            $this->commands([
+                UpdateWebShareProxiesCommand::class,
+            ]);
+
             $publishables = [
                 __DIR__ . '/../../config/webshare.php' => config_path('webshare.php'),
                 __DIR__ . '/../../database/migrations' => database_path('migrations'),

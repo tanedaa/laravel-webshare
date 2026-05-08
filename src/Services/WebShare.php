@@ -11,7 +11,7 @@ class WebShare
 {
     private string $url = 'https://proxy.webshare.io/api/v2/';
 
-    public function updateProxyList(int $pageSize = 100): void
+    public function updateProxyList(int $pageSize = 100): int
     {
         $proxies = $this->getProxyList($pageSize);
 
@@ -34,6 +34,8 @@ class WebShare
                 ]
             );
         }
+
+        return count($proxies['results']);
     }
 
     public function getProxyList(int $pageSize = 100): array
