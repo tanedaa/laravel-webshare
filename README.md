@@ -10,7 +10,7 @@ It supports:
 ## Requirements
 
 - PHP 8.1+
-- Laravel 10, 11, or 12
+- Laravel 10+
 
 ## Installation
 
@@ -131,22 +131,3 @@ public function __invoke(WebShare $webShare)
     return $webShare->getRandomProxyData();
 }
 ```
-
-## Error Handling
-
-The package throws explicit exceptions for common setup/runtime issues:
-
-- `Tanedaa\LaravelWebShare\Exceptions\MissingApiKeyException`
-  - Thrown when `WEBSHARE_API_KEY` / `webshare.api_key` is missing
-- `Tanedaa\LaravelWebShare\Exceptions\NoValidProxyException`
-  - Thrown when no valid local proxies exist (sync first)
-
-## Testing
-
-Run the test suite:
-
-```bash
-composer test
-```
-
-CI runs automatically on GitHub Actions for pushes and pull requests.
