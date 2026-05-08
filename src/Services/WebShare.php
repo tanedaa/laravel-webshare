@@ -10,8 +10,6 @@ use Tanedaa\LaravelWebShare\Models\Proxy;
 
 class WebShare
 {
-    private string $url = 'https://proxy.webshare.io/api/v2/';
-
     public function updateProxyList(int $pageSize = 100): int
     {
         $proxies = $this->getProxyList($pageSize);
@@ -127,6 +125,7 @@ class WebShare
     private function sendRequestToWebShare(string $path, array $payload = []): Response
     {
         $apiKey = (string) config('webshare.api_key', '');
+        $baseUrl = rtrim((string) config('webshare.base_url', 'https://proxy.webshare.io/api/v2/'), '/') . '/';
 
         if ($apiKey === '') {
             throw new MissingApiKeyException();
@@ -134,6 +133,6 @@ class WebShare
 
         return Http::withHeaders([
             'Authorization' => 'Token ' . $apiKey,
-        ])->get($this->url . $path, $payload);
+        ])->get($baseUrl . $path, $payload);
     }
 }

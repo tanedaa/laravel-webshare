@@ -45,6 +45,7 @@ Set your WebShare API key in `.env`:
 
 ```env
 WEBSHARE_API_KEY=your_webshare_api_key
+WEBSHARE_API_URL=https://proxy.webshare.io/api/v2/
 ```
 
 Config file: `config/webshare.php`
