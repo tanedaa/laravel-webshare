@@ -10,6 +10,11 @@
       "Tanedaa\\LaravelWebShare\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
   "extra": {
     "laravel": {
       "providers": [
@@ -25,5 +30,22 @@
     "illuminate/support": "^10.0|^11.0|^12.0",
     "illuminate/http": "^10.0|^11.0|^12.0",
     "illuminate/database": "^10.0|^11.0|^12.0"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^8.0|^9.0|^10.0",
+    "phpunit/phpunit": "^10.0|^11.0"
+  },
+  "scripts": {
+    "test": "phpunit"
+  },
+  "archive": {
+    "exclude": [
+      "/.github",
+      "/tests",
+      "/.phpunit.cache",
+      "/phpunit.xml",
+      "/.idea",
+      "/.vscode"
+    ]
   }
 }

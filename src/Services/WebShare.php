@@ -86,7 +86,7 @@ class WebShare
         $host = $proxy->proxy_address;
         $port = $proxy->port;
 
-        return "http://{$username}:{$password}@{$host}:{$port}";
+        return "http://$username:$password@$host:$port";
     }
 
     private function sendRequestToWebShare(string $path, array $payload = []): Response
