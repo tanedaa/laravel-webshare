@@ -10,7 +10,7 @@ class UpdateWebShareProxiesCommand extends Command
 {
     protected $signature = 'webshare:update-proxies {--page-size=100 : Page size used when fetching proxies from WebShare}';
 
-    protected $description = 'Fetch proxies from WebShare and upsert them into the local proxies table';
+    protected $description = 'Fetch proxies from WebShare and upsert them into the configured proxy table';
 
     public function handle(WebShare $webShare): int
     {

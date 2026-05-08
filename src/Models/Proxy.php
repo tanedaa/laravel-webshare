@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Proxy extends Model
 {
-    protected $table = 'proxies';
-
     protected $fillable = [
         'proxy_id',
         'username',
@@ -21,9 +19,22 @@ class Proxy extends Model
         'asn_number',
     ];
 
+    protected $hidden = [
+        'password',
+    ];
+
     protected $casts = [
+        'password' => 'encrypted',
+        'port' => 'integer',
         'is_valid' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function getTable(): string
+    {
+        $table = config('webshare.table', 'webshare_proxies');
+
+        return is_string($table) && trim($table) !== '' ? $table : 'webshare_proxies';
+    }
 }

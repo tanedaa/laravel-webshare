@@ -49,8 +49,8 @@ class UpdateWebShareProxiesCommandTest extends TestCase
             ->assertSuccessful();
 
         $this->assertSame(2, Proxy::query()->count());
-        $this->assertDatabaseHas('proxies', ['proxy_id' => 'proxy-cmd-1']);
-        $this->assertDatabaseHas('proxies', ['proxy_id' => 'proxy-cmd-2']);
+        $this->assertDatabaseHas($this->proxyTable(), ['proxy_id' => 'proxy-cmd-1']);
+        $this->assertDatabaseHas($this->proxyTable(), ['proxy_id' => 'proxy-cmd-2']);
     }
 
     public function test_it_fails_with_helpful_message_when_api_key_is_missing(): void

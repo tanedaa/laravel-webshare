@@ -4,6 +4,7 @@ namespace Tests;
 
 use Illuminate\Support\Facades\Artisan;
 use Orchestra\Testbench\TestCase as Orchestra;
+use Tanedaa\LaravelWebShare\Models\Proxy;
 use Tanedaa\LaravelWebShare\Providers\WebShareServiceProvider;
 
 abstract class TestCase extends Orchestra
@@ -24,6 +25,7 @@ abstract class TestCase extends Orchestra
             'prefix' => '',
         ]);
 
+        $app['config']->set('app.key', 'base64:MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=');
         $app['config']->set('webshare.api_key', 'test-api-key');
     }
 
@@ -32,5 +34,10 @@ abstract class TestCase extends Orchestra
         parent::setUp();
 
         Artisan::call('migrate', ['--database' => 'testing']);
+    }
+
+    protected function proxyTable(): string
+    {
+        return (new Proxy())->getTable();
     }
 }

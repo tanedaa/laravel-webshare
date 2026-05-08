@@ -46,9 +46,16 @@ Set your WebShare API key in `.env`:
 ```env
 WEBSHARE_API_KEY=your_webshare_api_key
 WEBSHARE_API_URL=https://proxy.webshare.io/api/v2/
+WEBSHARE_PROXY_TABLE=webshare_proxies
+WEBSHARE_TIMEOUT=10
+WEBSHARE_CONNECT_TIMEOUT=5
+WEBSHARE_RETRY_TIMES=2
+WEBSHARE_RETRY_SLEEP_MILLISECONDS=250
 ```
 
 Config file: `config/webshare.php`
+
+Custom API hosts are rejected by default. If you intentionally point the package at a non-WebShare host, set `WEBSHARE_ALLOW_CUSTOM_API_URL=true`.
 
 ## Sync Proxies
 
@@ -64,7 +71,7 @@ Optional page size:
 php artisan webshare:update-proxies --page-size=200
 ```
 
-The command paginates through WebShare API results until all purchased proxies are fetched, then upserts them into the `proxies` table.
+The command paginates through WebShare API results until all purchased proxies are fetched, then upserts them into the configured proxy table. By default, that table is `webshare_proxies`.
 
 ## Scheduling
 
@@ -107,9 +114,26 @@ use Tanedaa\LaravelWebShare\Facades\WebShare;
 
 $proxyUrl = WebShare::getRandomProxyUrl();
 $proxyData = WebShare::getRandomProxyData();
+$proxyCredentials = WebShare::getRandomProxyCredentials();
 ```
 
-`getRandomProxyData()` returns:
+`getRandomProxyData()` returns safe proxy metadata without credentials:
+
+```php
+[
+    'proxy_id' => '...',
+    'address' => 'host:port',
+    'ip' => 'host',
+    'port' => 1234,
+    'is_valid' => true,
+    'country_code' => '...',
+    'city_name' => '...',
+    'asn_name' => '...',
+    'asn_number' => '...',
+]
+```
+
+`getRandomProxyCredentials()` is available when a non-Laravel HTTP client needs explicit credentials:
 
 ```php
 [
@@ -121,6 +145,8 @@ $proxyData = WebShare::getRandomProxyData();
     'proxy_url' => 'http://user:pass@host:port',
 ]
 ```
+
+Proxy passwords are stored using Laravel's encrypted Eloquent cast and are hidden when the proxy model is serialized.
 
 ### 3. Dependency Injection
 
